@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { useLocation, useNavigate } from 'react-router-dom';
 import getIcon from '../utils/iconUtils';
+import { useProjectContext } from '../context/ProjectContext';
 
 // Icon declarations
 const PlusIcon = getIcon('Plus');
@@ -16,19 +18,25 @@ const InboxIcon = getIcon('Inbox');
 const ActivityIcon = getIcon('Activity');
 const ArchiveIcon = getIcon('Archive');
 const HelpCircleIcon = getIcon('HelpCircle');
+const FolderIcon = getIcon('Folder');
+const UserPlusIcon = getIcon('UserPlus');
 
 // Sample initial data
 const initialTasks = [
   {
     id: "task-1",
     title: "Design new dashboard UI",
+    projectId: "project-1",
     status: "todo",
     priority: "high",
     assignedTo: {
       name: "Alex Chen",
       avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
     },
-    dueDate: "2023-05-28"
+    assignedToGroup: false,
+    groupMembers: [],
+    dueDate: "2023-05-28",
+    description: "Create a modern dashboard interface with widgets for key metrics and activity feeds."
   },
   {
     id: "task-2",
@@ -37,9 +45,16 @@ const initialTasks = [
     priority: "medium",
     assignedTo: {
       name: "Sarah Johnson",
-      avatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+      avatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80",
     },
-    dueDate: "2023-05-30"
+    assignedToGroup: true,
+    groupMembers: [
+      { id: 'user-1', name: 'Alex Chen', avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80' },
+      { id: 'user-2', name: 'Sarah Johnson', avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80' }
+    ],
+    dueDate: "2023-05-30",
+    projectId: "project-2",
+    description: "Build a secure authentication API with JWT tokens, password reset, and account verification."
   },
   {
     id: "task-3",
@@ -49,7 +64,11 @@ const initialTasks = [
     assignedTo: {
       name: "Alex Chen",
       avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
-    },
+    assignedToGroup: false,
+    groupMembers: [],
+    dueDate: "2023-05-25",
+    projectId: "project-1",
+    description: "Configure GitHub Actions for continuous integration and deployment to staging and production environments."
     dueDate: "2023-05-25"
   },
   {
@@ -61,7 +80,11 @@ const initialTasks = [
       name: "David Kim",
       avatar: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
     },
-    dueDate: "2023-05-22"
+    assignedToGroup: false,
+    groupMembers: [],
+    dueDate: "2023-05-22",
+    projectId: "project-3",
+    description: "Create comprehensive unit tests for the user management module including authentication, profile management, and permissions."
   },
   {
     id: "task-5",
@@ -71,7 +94,11 @@ const initialTasks = [
     assignedTo: {
       name: "Sarah Johnson",
       avatar: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
-    },
+    assignedToGroup: false,
+    groupMembers: [],
+    dueDate: "2023-06-02",
+    projectId: "project-2",
+    description: "Update and expand the documentation for all UI components with usage examples and prop definitions."
     dueDate: "2023-06-02"
   }
 ];
@@ -106,7 +133,35 @@ const priorityColors = {
 };
 
 const TaskCard = ({ task, onEdit, onDelete, onChangeStatus }) => {
-  const { title, priority, assignedTo, dueDate, status } = task;
+  const { title, priority, assignedTo, assignedToGroup, groupMembers, dueDate, status, projectId } = task;
+  const { projects } = useProjectContext();
+  
+  // Find project name
+  const project = projects.find(p => p.id === projectId);
+  const projectName = project ? project.name : "No Project";
+  
+  // Render assigned team members
+  const renderAssignees = () => {
+    if (assignedToGroup && groupMembers.length > 0) {
+      return (
+        <div className="flex items-center -space-x-2">
+          {groupMembers.slice(0, 3).map((member, index) => (
+            <div key={index} className="h-6 w-6 rounded-full overflow-hidden border-2 border-white dark:border-surface-800">
+              <img 
+                src={member.avatar}
+                alt={member.name}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ))}
+          {groupMembers.length > 3 && <div className="h-6 w-6 rounded-full bg-primary-light flex items-center justify-center text-white text-xs">+{groupMembers.length - 3}</div>}
+        </div>
+      );
+    }
+    
+    return (
+      <div className="flex items-center space-x-1">
+        <div className="h-6 w-6 rounded-full overflow-hidden">
   
   return (
     <motion.div
@@ -120,6 +175,10 @@ const TaskCard = ({ task, onEdit, onDelete, onChangeStatus }) => {
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1">
           <h3 className="font-medium text-surface-900 dark:text-surface-100 line-clamp-2">{title}</h3>
+          <div className="flex items-center mt-1 text-xs text-surface-500">
+            <FolderIcon className="h-3.5 w-3.5 mr-1" />
+            <span>{projectName}</span>
+          </div>
         </div>
         <div className="flex gap-1 ml-2">
           <button 
@@ -139,14 +198,7 @@ const TaskCard = ({ task, onEdit, onDelete, onChangeStatus }) => {
       
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-1">
-          <div className="h-6 w-6 rounded-full overflow-hidden">
-            <img 
-              src={assignedTo.avatar} 
-              alt={assignedTo.name} 
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <span className="text-xs text-surface-600 dark:text-surface-400">{assignedTo.name.split(' ')[0]}</span>
+          {renderAssignees()}
         </div>
         
         <div className="flex items-center gap-2">
@@ -166,17 +218,22 @@ const TaskCard = ({ task, onEdit, onDelete, onChangeStatus }) => {
 
 const MainFeature = () => {
   const [tasks, setTasks] = useState(initialTasks);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { projects } = useProjectContext();
   const [newTask, setNewTask] = useState({
     title: "",
+    description: "",
     status: "todo",
     priority: "medium",
-    dueDate: new Date().toISOString().split('T')[0]
+    dueDate: new Date().toISOString().split('T')[0],
+    projectId: "",
+    assignedToGroup: false,
+    groupMembers: []
   });
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [editingTaskId, setEditingTaskId] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [draggedTask, setDraggedTask] = useState(null);
   
   // Column definitions
   const columns = [
@@ -186,6 +243,24 @@ const MainFeature = () => {
     { id: "done", name: "Completed", icon: ArchiveIcon }
   ];
 
+  // Get selected project from URL query params
+  const queryParams = new URLSearchParams(location.search);
+  const selectedProjectId = queryParams.get('projectId');
+  
+  // Filter tasks by selected project
+  const filteredTasks = selectedProjectId 
+    ? tasks.filter(task => task.projectId === selectedProjectId)
+    : tasks;
+    
+  // Update project filter
+  const handleProjectChange = (projectId) => {
+    if (projectId === "all") {
+      navigate("/");
+    } else {
+      navigate(`/?projectId=${projectId}`);
+    }
+  };
+
   // Handle opening the form for adding a new task
   const handleAddNewClick = () => {
     setIsFormOpen(true);
@@ -193,10 +268,21 @@ const MainFeature = () => {
     setNewTask({
       title: "",
       status: "todo",
+      description: "",
       priority: "medium",
-      dueDate: new Date().toISOString().split('T')[0]
+      dueDate: new Date().toISOString().split('T')[0],
+      projectId: selectedProjectId || (projects.length > 0 ? projects[0].id : ""),
+      assignedToGroup: false,
+      groupMembers: []
     });
     setFormErrors({});
+    
+    // If we don't have any projects, show a message and redirect
+    if (projects.length === 0) {
+      toast.error("Please create a project first");
+      navigate("/projects");
+      return;
+    }
   };
 
   // Handle opening the form for editing an existing task
@@ -206,8 +292,12 @@ const MainFeature = () => {
       setNewTask({
         title: taskToEdit.title,
         status: taskToEdit.status,
+        description: taskToEdit.description || "",
         priority: taskToEdit.priority,
-        dueDate: taskToEdit.dueDate
+        dueDate: taskToEdit.dueDate,
+        projectId: taskToEdit.projectId,
+        assignedToGroup: taskToEdit.assignedToGroup || false,
+        groupMembers: taskToEdit.groupMembers || []
       });
       setEditingTaskId(taskId);
       setIsFormOpen(true);
@@ -236,6 +326,9 @@ const MainFeature = () => {
     if (!newTask.title.trim()) {
       errors.title = "Task title is required";
     }
+    if (!newTask.projectId) {
+      errors.projectId = "Project is required";
+    }
     if (!newTask.dueDate) {
       errors.dueDate = "Due date is required";
     }
@@ -258,8 +351,12 @@ const MainFeature = () => {
                 ...task, 
                 title: newTask.title,
                 status: newTask.status,
+                description: newTask.description,
                 priority: newTask.priority,
-                dueDate: newTask.dueDate
+                dueDate: newTask.dueDate,
+                projectId: newTask.projectId,
+                assignedToGroup: newTask.assignedToGroup,
+                groupMembers: newTask.assignedToGroup ? newTask.groupMembers : []
               } 
             : task
         )
@@ -271,11 +368,15 @@ const MainFeature = () => {
         id: `task-${Date.now()}`,
         title: newTask.title,
         status: newTask.status,
+        description: newTask.description,
         priority: newTask.priority,
         dueDate: newTask.dueDate,
-        assignedTo: {
+        projectId: newTask.projectId,
+        assignedToGroup: newTask.assignedToGroup,
+        groupMembers: newTask.assignedToGroup ? newTask.groupMembers : [],
+        assignedTo: newTask.assignedToGroup ? null : {
           name: "Alex Chen",
-          avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
+          avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80",
         }
       };
       
@@ -312,7 +413,7 @@ const MainFeature = () => {
 
   // Helper function to get tasks for a specific column
   const getTasksByStatus = (status) => {
-    return tasks.filter(task => task.status === status);
+    return filteredTasks.filter(task => task.status === status);
   };
 
   return (
@@ -323,6 +424,30 @@ const MainFeature = () => {
           <p className="text-surface-600 dark:text-surface-400">Manage and track your team's tasks</p>
         </div>
         
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="relative">
+            <select
+              className="form-input pr-8 py-2"
+              value={selectedProjectId || "all"}
+              onChange={(e) => handleProjectChange(e.target.value)}
+            >
+              <option value="all">All Projects</option>
+              {projects.map(project => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+              <FolderIcon className="h-5 w-5 text-surface-500" />
+            </div>
+          </div>
+          
+          <a href="/projects" className="btn btn-outline hidden sm:flex items-center gap-2 py-2">
+            <FolderIcon className="h-5 w-5" />
+            <span>Manage Projects</span>
+          </a>
+        
         <button 
           onClick={handleAddNewClick}
           className="btn btn-primary flex items-center gap-2"
@@ -332,6 +457,7 @@ const MainFeature = () => {
         </button>
       </div>
       
+      </div>
       {/* Task Board */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {columns.map(column => (
@@ -405,6 +531,27 @@ const MainFeature = () => {
               <form onSubmit={handleSubmit} className="p-4 space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1" htmlFor="task-title">
+                    Project
+                  </label>
+                  <select
+                    id="task-project"
+                    name="projectId"
+                    value={newTask.projectId}
+                    onChange={handleInputChange}
+                    className={`form-input ${formErrors.projectId ? 'border-red-500 dark:border-red-500' : ''}`}
+                  >
+                    <option value="">Select a project</option>
+                    {projects.map(project => (
+                      <option key={project.id} value={project.id}>{project.name}</option>
+                    ))}
+                  </select>
+                  {formErrors.projectId && (
+                    <p className="text-red-500 text-xs mt-1">{formErrors.projectId}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="task-title">
                     Task Title
                   </label>
                   <input
@@ -419,6 +566,21 @@ const MainFeature = () => {
                   {formErrors.title && (
                     <p className="text-red-500 text-xs mt-1">{formErrors.title}</p>
                   )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="task-description">
+                    Description
+                  </label>
+                  <textarea
+                    id="task-description"
+                    name="description"
+                    value={newTask.description}
+                    onChange={handleInputChange}
+                    placeholder="Enter task description"
+                    className="form-input"
+                    rows="3"
+                  />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -474,6 +636,39 @@ const MainFeature = () => {
                     <p className="text-red-500 text-xs mt-1">{formErrors.dueDate}</p>
                   )}
                 </div>
+                <div>
+                  <div className="flex items-center mb-2">
+                    <input
+                      type="checkbox"
+                      id="assign-to-group"
+                      name="assignedToGroup"
+                      checked={newTask.assignedToGroup}
+                      onChange={(e) => handleInputChange({
+                        target: { name: 'assignedToGroup', value: e.target.checked }
+                      })}
+                      className="mr-2 h-4 w-4 text-primary focus:ring-primary-light rounded"
+                    />
+                    <label htmlFor="assign-to-group" className="text-sm font-medium">
+                      Assign to a group
+                    </label>
+                  </div>
+                  
+                  {newTask.assignedToGroup && (
+                    <div className="flex items-center gap-2 p-3 bg-surface-100 dark:bg-surface-700 rounded-lg">
+                      <UserPlusIcon className="h-5 w-5 text-surface-600 dark:text-surface-400" />
+                      <p className="text-sm text-surface-600 dark:text-surface-400">
+                        This task will be visible to all team members of the selected project.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {!newTask.assignedToGroup && (
+                    <p className="text-sm text-surface-600 dark:text-surface-400 p-3 bg-surface-100 dark:bg-surface-700 rounded-lg">
+                      This task will be assigned to a single team member.
+                    </p>
+                  )}
+                </div>
+                
                 
                 <div className="flex justify-end gap-3 pt-2">
                   <button
@@ -499,5 +694,7 @@ const MainFeature = () => {
     </div>
   );
 };
+
+
 
 export default MainFeature;
