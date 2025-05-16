@@ -239,11 +239,6 @@ const Home = () => {
       </motion.section>
 
       {/* Stats Overview */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: mounted ? 1 : 0, y: mounted ? 0 : 20 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      >
 
       {/* Main feature component */}
       <motion.section
@@ -254,6 +249,7 @@ const Home = () => {
       >
         <MainFeature />
       </motion.section>
+      
     </div>
   );
 };
