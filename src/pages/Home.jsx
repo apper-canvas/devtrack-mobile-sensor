@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import dayjs from 'dayjs';
 import { toast } from 'react-toastify';
 import getIcon from '../utils/iconUtils';
 import { useProjectContext } from '../context/ProjectContext';
@@ -21,6 +22,15 @@ const Home = () => {
     avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80",
     taskCount: 7
   });
+
+  const [currentTime, setCurrentTime] = useState(dayjs().format('HH:mm:ss'));
+  
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentTime(dayjs().format('HH:mm:ss'));
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
   
   const [activeProjects, setActiveProjects] = useState(0);
   const [totalTasks, setTotalTasks] = useState(0);
@@ -90,6 +100,7 @@ const Home = () => {
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">Hello, {user.name}</h1>
               <p className="text-surface-600 dark:text-surface-400">{user.role} • {user.taskCount} tasks assigned</p>
+              <p className="text-primary font-semibold mt-1">Current time: {currentTime}</p>
             </div>
           </div>
           <div className="flex gap-3">
