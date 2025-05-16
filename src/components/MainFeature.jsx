@@ -65,12 +65,12 @@ const initialTasks = [
       name: "Alex Chen",
       avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80"
     assignedToGroup: false,
-    groupMembers: [],
+    },
+    assignedToGroup: false,
     dueDate: "2023-05-25",
     projectId: "project-1",
     description: "Configure GitHub Actions for continuous integration and deployment to staging and production environments."
-    dueDate: "2023-05-25"
-  },
+    description: "Configure GitHub Actions for continuous integration and deployment to staging and production environments."
   {
     id: "task-4",
     title: "Write unit tests for user module",
