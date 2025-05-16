@@ -23,11 +23,13 @@ const Home = () => {
     taskCount: 7
   });
 
-  const [currentTime, setCurrentTime] = useState(dayjs().format('HH:mm:ss'));
+  const [currentTime, setCurrentTime] = useState(dayjs().format('HH:mm'));
+  const [currentDate, setCurrentDate] = useState(dayjs().format('dddd, MMMM D, YYYY'));
   
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setCurrentTime(dayjs().format('HH:mm:ss'));
+      setCurrentTime(dayjs().format('HH:mm'));
+      setCurrentDate(dayjs().format('dddd, MMMM D, YYYY'));
     }, 1000);
     return () => clearInterval(intervalId);
   }, []);
@@ -100,7 +102,8 @@ const Home = () => {
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">Hello, {user.name}</h1>
               <p className="text-surface-600 dark:text-surface-400">{user.role} • {user.taskCount} tasks assigned</p>
-              <p className="text-primary font-semibold mt-1">Current time: {currentTime}</p>
+              <p className="text-primary font-semibold mt-1">Today: {currentDate}</p>
+              <p className="text-primary font-semibold">Current time: {currentTime}</p>
             </div>
           </div>
           <div className="flex gap-3">
