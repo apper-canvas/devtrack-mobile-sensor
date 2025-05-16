@@ -344,7 +344,7 @@ const MainFeature = () => {
                 <column.icon className="h-5 w-5" />
                 <h3 className="font-semibold">{column.name}</h3>
               </div>
-              <span className="bg-white dark:bg-surface-800 text-sm font-medium text-surface-800 dark:text-white px-2 py-0.5 rounded-full">
+              <span className="bg-white dark:bg-surface-800 text-sm font-medium text-surface-800 dark:text-white dark:opacity-100 px-2 py-0.5 rounded-full">
                 {getTasksByStatus(column.id).length}
               </span>
             </div>
