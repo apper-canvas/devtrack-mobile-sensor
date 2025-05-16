@@ -72,7 +72,6 @@ const initialTasks = [
     groupMembers: []
   },
   {
-  {
     id: "task-4",
     title: "Write unit tests for user module",
     status: "done",
