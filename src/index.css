@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply text-surface-800 dark:text-surface-100;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-surface-50 dark:bg-surface-900;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 transform active:scale-95;
+  }
+  
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-white shadow-sm;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary hover:bg-secondary-dark text-white shadow-sm;
+  }
+  
+  .btn-accent {
+    @apply bg-accent hover:bg-orange-600 text-white shadow-sm;
+  }
+  
+  .btn-outline {
+    @apply border border-surface-300 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-800;
+  }
+  
+  .card {
+    @apply bg-white dark:bg-surface-800 rounded-xl shadow-card p-4 md:p-6;
+  }
+  
+  .card-neumorphic-light {
+    @apply bg-surface-100 rounded-xl shadow-neu-light p-4 md:p-6;
+  }
+  
+  .card-neumorphic-dark {
+    @apply bg-surface-800 rounded-xl shadow-neu-dark p-4 md:p-6 dark:border dark:border-surface-700;
+  }
+  
+  .form-input {
+    @apply w-full px-3 py-2 bg-white dark:bg-surface-800 border border-surface-300 dark:border-surface-700
+      rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-light;
+  }
+  
+  .task-tag {
+    @apply px-2 py-1 text-xs rounded-full font-medium;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-primary to-primary-light text-transparent bg-clip-text;
+  }
+}
+
+/* React Toastify Styling */
+@import 'react-toastify/dist/ReactToastify.css';
