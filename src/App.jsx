@@ -39,7 +39,7 @@ function App() {
       <header className="fixed top-0 w-full bg-white dark:bg-surface-800 shadow-sm z-10 transition-colors">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <h1 className="text-xl md:text-2xl font-bold text-primary dark:text-primary-light">
-            <span className="text-accent">Developers</span> TaskFlow
+            <span className="text-accent">dev-task</span>-easy
           </h1>
           
           <nav className="hidden md:flex items-center space-x-1">
